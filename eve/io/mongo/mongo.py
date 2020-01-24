@@ -866,8 +866,11 @@ class Mongo(DataLayer):
 
         for k, v in source.items():
             keys = k.split(".")
-            schema_type = get_schema_type(keys, schema)
-            is_objectid = (schema_type == "objectid") or parse_objectid
+            is_objectid = parse_objectid
+            if not is_objectid:
+                # We still may want to convert to objectid if the schema defines the
+                # field as an objectid - or if we simply cannot parse the query correctly.
+                is_objectid = get_schema_type(keys, schema) in [None, "objectid"]
             if isinstance(v, dict):
                 self._mongotize(v, resource, is_objectid)
             elif isinstance(v, list):
